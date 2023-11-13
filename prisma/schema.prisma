@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Asset {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  type     AssetType
+  fileName String
+  filePath String
+  fileHash String
+}
+
+enum AssetType {
+  STATIC
+  ANIMATION
+}
+
+model User {
+  id                 String           @id @default(auto()) @map("_id") @db.ObjectId
+  phone              String           @unique
+  name               String?
+  snsId              String?
+  snsType            SNSType?
+  hasedPassword      String
+  profileImage       String?
+  isPushEnabled      Boolean          @default(false)
+  lastAdSeenAt       DateTime?
+  lastCheckedInAt    DateTime?
+  weeklyCheckInCount Int              @default(0)
+  deletedAt          DateTime?
+  ownedPets          OwnedPet[]
+  ownedItems         OwnedItem[]
+  ownedFurnitures    OwnedFurniture[]
+  room               Room?
+  isAdmin            Boolean          @default(false)
+}
+
+enum SNSType {
+  KAKAO
+  APPLE
+}
+
+model Pet {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  avatar String
+  type   PetType
+}
+
+enum PetType {
+  DOG
+  CAT
+}
+
+model PetAsset {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  colorName String
+}
+
+model PetEvent {
+  id      String       @id @default(auto()) @map("_id") @db.ObjectId
+  name    String
+  type    PetEventType @default(COMMON)
+  assetId String       @db.ObjectId
+}
+
+enum PetEventType {
+  COMMON // 이동, 밥먹기 등
+  SPECIAL
+}
+
+model Item {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  name    String
+  assetId String   @db.ObjectId
+  type    ItemType
+}
+
+enum ItemType {
+  FEED
+  TOY
+  MEDICINE
+}
+
+model Furniture {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  name    String
+  assetId String @db.ObjectId
+  width   Int
+  height  Int
+  price   Int
+}
+
+model OwnedPet {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String    @db.ObjectId
+  petId        String    @db.ObjectId
+  customName   String
+  exp          Int       @default(0)
+  birthday     DateTime  @default(now())
+  adoptionDay  DateTime  @default(now())
+  lastBathAt   DateTime?
+  lastFeedAt   DateTime?
+  lastCuredAt  DateTime?
+  lastPlayedAt DateTime?
+}
+
+model OwnedItem {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+  itemId String @db.ObjectId
+  count  Int
+}
+
+model OwnedFurniture {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  user        User   @relation(fields: [userId], references: [id])
+  userId      String @db.ObjectId
+  furnitureId String @db.ObjectId
+}
+
+model PlacedFurniture {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  ownedFurnitureId String  @db.ObjectId
+  x                Int
+  y                Int
+  zIndex           Int
+  isFlipped        Boolean
+  Room             Room?   @relation(fields: [roomId], references: [id])
+  roomId           String? @db.ObjectId
+}
+
+model Room {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  user        User              @relation(fields: [userId], references: [id])
+  userId      String            @unique @db.ObjectId
+  furnitures  PlacedFurniture[]
+  furnitureId String            @db.ObjectId
+}
