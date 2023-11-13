@@ -24,23 +24,24 @@ enum AssetType {
 }
 
 model User {
-  id                 String           @id @default(auto()) @map("_id") @db.ObjectId
-  phone              String           @unique
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  phone              String               @unique
   name               String?
   snsId              String?
   snsType            SNSType?
   hasedPassword      String
   profileImage       String?
-  isPushEnabled      Boolean          @default(false)
+  isPushEnabled      Boolean              @default(false)
   lastAdSeenAt       DateTime?
   lastCheckedInAt    DateTime?
-  weeklyCheckInCount Int              @default(0)
+  weeklyCheckInCount Int                  @default(0)
   deletedAt          DateTime?
-  ownedPets          OwnedPet[]
-  ownedItems         OwnedItem[]
-  ownedFurnitures    OwnedFurniture[]
+  ownedPets          UserOwnedPet[]
+  ownedItems         UserOwnedItem[]
+  ownedFurnitures    UserOwnedFurniture[]
   room               Room?
-  isAdmin            Boolean          @default(false)
+  isAdmin            Boolean              @default(false)
+  hasGuideShownAt    DateTime?
 }
 
 enum SNSType {
@@ -99,7 +100,7 @@ model Furniture {
   price   Int
 }
 
-model OwnedPet {
+model UserOwnedPet {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
   user         User      @relation(fields: [userId], references: [id])
   userId       String    @db.ObjectId
@@ -114,7 +115,7 @@ model OwnedPet {
   lastPlayedAt DateTime?
 }
 
-model OwnedItem {
+model UserOwnedItem {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   user   User   @relation(fields: [userId], references: [id])
   userId String @db.ObjectId
@@ -122,28 +123,37 @@ model OwnedItem {
   count  Int
 }
 
-model OwnedFurniture {
+model UserOwnedFurniture {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   user        User   @relation(fields: [userId], references: [id])
   userId      String @db.ObjectId
   furnitureId String @db.ObjectId
 }
 
-model PlacedFurniture {
-  id               String  @id @default(auto()) @map("_id") @db.ObjectId
-  ownedFurnitureId String  @db.ObjectId
-  x                Int
-  y                Int
-  zIndex           Int
-  isFlipped        Boolean
-  Room             Room?   @relation(fields: [roomId], references: [id])
-  roomId           String? @db.ObjectId
+model RoomPlacedPet {
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  userOwnedPetId String  @db.ObjectId
+  Room           Room   @relation(fields: [roomId], references: [id])
+  roomId         String @db.ObjectId
+}
+
+model RoomPlacedFurniture {
+  id                   String  @id @default(auto()) @map("_id") @db.ObjectId
+  userOwnedFurnitureId String  @db.ObjectId
+  x                    Int
+  y                    Int
+  zIndex               Int
+  isFlipped            Boolean
+  Room                 Room   @relation(fields: [roomId], references: [id])
+  roomId               String @db.ObjectId
 }
 
 model Room {
-  id          String            @id @default(auto()) @map("_id") @db.ObjectId
-  user        User              @relation(fields: [userId], references: [id])
-  userId      String            @unique @db.ObjectId
-  furnitures  PlacedFurniture[]
-  furnitureId String            @db.ObjectId
+  id          String                @id @default(auto()) @map("_id") @db.ObjectId
+  user        User                  @relation(fields: [userId], references: [id])
+  userId      String                @unique @db.ObjectId
+  pets        RoomPlacedPet[]
+  petId       String                @db.ObjectId
+  furnitures  RoomPlacedFurniture[]
+  furnitureId String                @db.ObjectId
 }
