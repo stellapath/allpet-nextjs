@@ -23,30 +23,39 @@ enum AssetType {
   ANIMATION
 }
 
-model User {
-  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
-  phone              String               @unique
-  name               String?
-  snsId              String?
-  snsType            SNSType?
-  hasedPassword      String
-  profileImage       String?
-  isPushEnabled      Boolean              @default(false)
-  lastAdSeenAt       DateTime?
-  lastCheckedInAt    DateTime?
-  weeklyCheckInCount Int                  @default(0)
-  deletedAt          DateTime?
-  ownedPets          UserOwnedPet[]
-  ownedItems         UserOwnedItem[]
-  ownedFurnitures    UserOwnedFurniture[]
-  room               Room?
-  isAdmin            Boolean              @default(false)
-  hasGuideShownAt    DateTime?
+model Account {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String?   @unique
+  hashedPassword String?
+  snsId          String?
+  snsType        SNSType?
+  isAdmin        Boolean   @default(false)
+  user           User?
+  createdAt      DateTime  @default(now())
+  deletedAt      DateTime?
 }
 
 enum SNSType {
   KAKAO
   APPLE
+}
+
+model User {
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  phone              String               @unique
+  name               String
+  profileImage       String?
+  isPushEnabled      Boolean              @default(false)
+  lastAdSeenAt       DateTime?
+  lastCheckedInAt    DateTime?
+  weeklyCheckInCount Int                  @default(0)
+  ownedPets          UserOwnedPet[]
+  ownedItems         UserOwnedItem[]
+  ownedFurnitures    UserOwnedFurniture[]
+  room               Room?
+  hasGuideShownAt    DateTime?
+  account            Account              @relation(fields: [accountId], references: [id])
+  accountId          String               @unique @db.ObjectId
 }
 
 model Pet {
@@ -131,8 +140,8 @@ model UserOwnedFurniture {
 }
 
 model RoomPlacedPet {
-  id             String  @id @default(auto()) @map("_id") @db.ObjectId
-  userOwnedPetId String  @db.ObjectId
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  userOwnedPetId String @db.ObjectId
   Room           Room   @relation(fields: [roomId], references: [id])
   roomId         String @db.ObjectId
 }
@@ -144,8 +153,8 @@ model RoomPlacedFurniture {
   y                    Int
   zIndex               Int
   isFlipped            Boolean
-  Room                 Room   @relation(fields: [roomId], references: [id])
-  roomId               String @db.ObjectId
+  Room                 Room    @relation(fields: [roomId], references: [id])
+  roomId               String  @db.ObjectId
 }
 
 model Room {
